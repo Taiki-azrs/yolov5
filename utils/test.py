@@ -14,25 +14,41 @@ class hoge:
 
     # def __call__(self, image,bboxes,class_labels):
     def __call__(self, **params):
-        xmin=int(params['bboxes'][0][0]*self.img_size)
-        ymin=int(params['bboxes'][0][1]*self.img_size)
-        xmax=int(params['bboxes'][0][2]*self.img_size)
-        ymax=int(params['bboxes'][0][3]*self.img_size)
+        xmin=params['bboxes'][0][0]
+        ymin=params['bboxes'][0][1]
+        xmax=params['bboxes'][0][2]
+        ymax=params['bboxes'][0][3]
         bbox_w = xmax-xmin
         bbox_h = ymax-ymin
+        
+        resize_rate=random.random()
         img = params['image']
-        bbox_img = img[0,ymin:ymax,xmin:xmax].copy()
-        rate=random.random()
-        resized_size=int(self.img_size*rate)
-        bbox_img = cv2.resize(bbox_img, dsize=(resized_size,resized_size))
-        pos_x = random.random()
-        pos_y = random.random()
+        bbox_img = img[0,
+                       int(ymin*self.img_size):int(ymax*self.img_size),
+                       int(xmin*self.img_size):int(xmax*self.img_size)].copy()
+        print(bbox_img.shape)
+        resize_size=int(self.img_size*resize_rate)
+        bbox_img = cv2.resize(bbox_img, dsize=None,fx=resize_rate,fy=resize_rate)
+        print(bbox_img.shape)
+        new_xmin = int(random.random()*self.img_size)
+        new_ymin = int(random.random()*self.img_size)
+        new_xmax = min(new_xmin+bbox_img.shape[1],self.img_size)
+        new_ymax = min(new_ymin+bbox_img.shape[0],self.img_size)
+        new_bbox_w = new_xmax-new_xmin
+        new_bbox_h = new_ymax-new_ymin
+        
         img[
             0,
-            int(pos_x*resized_size) : int(pos_x*resized_size + resized_size),
-            int(pos_y*resized_size) : int(pos_y*resized_size + resized_size)
-        ]=bbox_img[:]
-        params['bboxes'][0]=(pos_x,pos_y,pos_x+rate,pos_y+rate)
+            new_ymin : new_ymax,
+            new_xmin : new_xmax
+        ]=bbox_img[0 : new_bbox_h, 0 : new_bbox_w]
+        
+        params['bboxes'][0]=(new_xmin/self.img_size,
+                             new_ymin/self.img_size,
+                             new_xmax/self.img_size,
+                             new_ymax/self.img_size)
+        print(img.shape)
+
 
         return params
     
