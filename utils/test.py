@@ -14,6 +14,7 @@ class hoge:
 
     # def __call__(self, image,bboxes,class_labels):
     def __call__(self, **params):
+
         xmin=params['bboxes'][0][0]
         ymin=params['bboxes'][0][1]
         xmax=params['bboxes'][0][2]
@@ -26,10 +27,8 @@ class hoge:
         bbox_img = img[0,
                        int(ymin*self.img_size):int(ymax*self.img_size),
                        int(xmin*self.img_size):int(xmax*self.img_size)].copy()
-        print(bbox_img.shape)
         resize_size=int(self.img_size*resize_rate)
         bbox_img = cv2.resize(bbox_img, dsize=None,fx=resize_rate,fy=resize_rate)
-        print(bbox_img.shape)
         new_xmin = int(random.random()*self.img_size)
         new_ymin = int(random.random()*self.img_size)
         new_xmax = min(new_xmin+bbox_img.shape[1],self.img_size)
@@ -42,12 +41,20 @@ class hoge:
             new_ymin : new_ymax,
             new_xmin : new_xmax
         ]=bbox_img[0 : new_bbox_h, 0 : new_bbox_w]
-        
+        # print(img[0,:,:,:].shape)
+        # img = cv2.rectangle(img[0,:,:,:],pt1=(new_xmin,new_ymin),
+        #                      pt2=(new_xmax,new_ymax),
+        #                      color=(0,255,0),
+        #                      thickness=3,
+        #                      lineType=cv2.LINE_4,
+        #                      shift=0)
+        # params['image']=img[np.newaxis,:,:,:]
         params['bboxes'][0]=(new_xmin/self.img_size,
                              new_ymin/self.img_size,
                              new_xmax/self.img_size,
-                             new_ymax/self.img_size)
-        print(img.shape)
+                             new_ymax/self.img_size,0)
+
+        
 
 
         return params
@@ -108,8 +115,9 @@ def main():
     # img = img.transpose(1,2,0)
     img = cv2.resize(img,(640,640))
     img = img[np.newaxis,:,:,:]
-    print(img.shape)
+    print(l)
     img, labels = albumentations(img,l)
+    print(labels)
     cv2.imwrite('out.png',img[0,:,:,:])
 if __name__ =="__main__":
     main()
